@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using TinyUrl.Api.Extensions;
 using TinyUrl.Service.Services;
 
 namespace TinyUrl.Api
@@ -33,7 +34,7 @@ namespace TinyUrl.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddInjections();
             services.AddControllers();
             services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -42,7 +43,7 @@ namespace TinyUrl.Api
             services.AddSingleton<IConnectionMultiplexer>(x =>
                 ConnectionMultiplexer.Connect(Configuration.GetValue<string>("RedisConnection"))
             );
-            services.AddHostedService<GetRangeHostedService>();
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TinyUrl.Api", Version = "v1" });
