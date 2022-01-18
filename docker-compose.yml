@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  tinyurl:
+    image: ${DOCKER_REGISTRY-}tinyurlapi
+    build:
+      context: .
+      dockerfile: TinyUrl.Api/Dockerfile
