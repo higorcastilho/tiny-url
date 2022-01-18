@@ -21,12 +21,12 @@ namespace TinyUrl.Service.Services
             _repository = repository;
         }
 
-        static bool AcquiredLock(string key, string value, TimeSpan expiration)
+        static async Task<bool> AcquiredLock(string key, string value, TimeSpan expiration)
         {
             bool flag = false;
             try
             {
-                flag = _repository.SetWithExpirationTime(key, value, expiration);
+                flag = await _repository.SetWithExpirationTime(key, value, expiration);
             }
             catch (Exception ex)
             {
@@ -37,7 +37,7 @@ namespace TinyUrl.Service.Services
             return flag;
         }
 
-        static bool ReleaseLock(string key, string value)
+        static async Task<bool> ReleaseLock(string key, string value)
         {
             string lua_script = @"
                 if (redis.call('GET', KEYS[1]) == ARGV[1]) then
@@ -49,7 +49,7 @@ namespace TinyUrl.Service.Services
             ";
             try
             {
-                var res = _repository.ScriptEvaluate(lua_script, key , value);
+                var res = await _repository.ScriptEvaluate(lua_script, key , value);
                 return res;
             }
             catch (Exception ex)
@@ -59,7 +59,7 @@ namespace TinyUrl.Service.Services
             }
         }
 
-        public void GetRange()
+        public async Task GetRange()
         {
             var range = _configuration.GetValue<long>("Range");
             var containerId = Dns.GetHostName();
@@ -68,7 +68,7 @@ namespace TinyUrl.Service.Services
             TimeSpan expiration = TimeSpan.FromSeconds(5);
 
             var val = 0;
-            bool isLocked = AcquiredLock(lockKey, containerId, expiration);
+            bool isLocked = await AcquiredLock(lockKey, containerId, expiration);
 
             var rnd = new Random();
 
@@ -76,35 +76,35 @@ namespace TinyUrl.Service.Services
             {
                 val += 250;
                 System.Threading.Thread.Sleep(rnd.Next(250, 3000));
-                isLocked = AcquiredLock(lockKey, containerId, expiration);
+                isLocked = await AcquiredLock(lockKey, containerId, expiration);
             }
 
             if (isLocked)
             {
-                var containerRangeCounter = _repository.Get(containerId);
+                var containerRangeCounter = await _repository.Get(containerId);
 
                 var containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
                 var containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
 
                 if (containerRangeCounter == null || (containerRageCurrent == containerRangeMax))
                 {
-                    var rangeStart = _repository.Get("rangeStart");
+                    var rangeStart = await _repository.Get("rangeStart");
 
                     if (rangeStart == null)
                     {
-                        _repository.Set("rangeStart", "0");
+                        await _repository.Set("rangeStart", "0");
                     }
 
-                    rangeStart = _repository.Get("rangeStart");
+                    rangeStart = await _repository.Get("rangeStart");
 
                     containerRangeCounter = $"{long.Parse(rangeStart)}-{long.Parse(rangeStart) + range}";
-                    _repository.Set(containerId, containerRangeCounter);
+                    await _repository.Set(containerId, containerRangeCounter);
 
-                    _repository.Set("rangeStart", $"{int.Parse(rangeStart) + range}");
+                    await _repository.Set("rangeStart", $"{int.Parse(rangeStart) + range}");
 
-                    Console.WriteLine($"{containerId} - {_repository.Get(containerId)}");
+                    Console.WriteLine($"{containerId} - {await _repository.Get(containerId)}");
 
-                    ReleaseLock(lockKey, containerId);
+                    await ReleaseLock(lockKey, containerId);
                 }
             }
         }

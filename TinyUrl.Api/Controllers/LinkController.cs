@@ -21,11 +21,11 @@ namespace TinyUrl.Api.Controllers
         }
         [Route("")]
         [HttpGet("{shortUrl}")]
-        public ActionResult GetLongUrlRedirect(string shortUrl)
+        public async Task<ActionResult> GetLongUrlRedirect(string shortUrl)
         {
             try
             {
-                var longUrl = _service.GetShortenedUrlRedirect(shortUrl);
+                var longUrl = await _service.GetShortenedUrlRedirect(shortUrl);
                 return Redirect(longUrl);
             }
             catch (Exception e)
@@ -36,12 +36,12 @@ namespace TinyUrl.Api.Controllers
         }
         [Route("Link")]
         [HttpPost]
-        public ActionResult<string> Generate([FromBody] LongUrl longUrl)
+        public async Task<ActionResult<string>> Generate([FromBody] LongUrl longUrl)
         {
             try
             {
                 var host = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
-                var generatedLink = _service.Generate(longUrl.Url, host);
+                var generatedLink = await _service.Generate(longUrl.Url, host);
                 
                 var name = Dns.GetHostName(); // get container id
                 var ip = Dns.GetHostEntry(name).AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);

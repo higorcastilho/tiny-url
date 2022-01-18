@@ -8,6 +8,6 @@ namespace TinyUrl.Service.Interface
 {
     public interface ICacheService
     {
-        void GetRange();
+        Task GetRange();
     }
 }

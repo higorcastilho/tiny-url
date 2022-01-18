@@ -9,7 +9,7 @@ namespace TinyUrl.Service.Interface
 {
     public interface ILinkService
     {
-        string Generate(string longUrl, string host);
-        string GetShortenedUrlRedirect(string shortUrl);
+        Task<string> Generate(string longUrl, string host);
+        Task<string> GetShortenedUrlRedirect(string shortUrl);
     }
 }

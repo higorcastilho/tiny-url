@@ -8,9 +8,9 @@ namespace TinyUrl.Data.Interface
 {
     public interface ICacheRepository
     {
-        string Get(string key);
-        void Set(string key, string value);
-        bool SetWithExpirationTime(string key, string value, TimeSpan expiration);
-        bool ScriptEvaluate(string script, string key, string value);
+        Task<string> Get(string key);
+        Task Set(string key, string value);
+        Task<bool> SetWithExpirationTime(string key, string value, TimeSpan expiration);
+        Task<bool> ScriptEvaluate(string script, string key, string value);
     }
 }

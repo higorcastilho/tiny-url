@@ -16,26 +16,26 @@ namespace TinyUrl.Data.Repository
             _connectionMultiplexer = connectionMultiplexer;   
         }
 
-        public string Get(string key)
+        public async Task<string> Get(string key)
         {
-            var result = _connectionMultiplexer.GetDatabase().StringGet(key);
+            var result = await _connectionMultiplexer.GetDatabase().StringGetAsync(key);
             return result;
         }
 
-        public void Set(string key, string value)
+        public async Task Set(string key, string value)
         {
-            _connectionMultiplexer.GetDatabase().StringSet(key, value);
+            await _connectionMultiplexer.GetDatabase().StringSetAsync(key, value);
         }
 
-        public bool SetWithExpirationTime(string key, string value, TimeSpan expiration)
+        public async Task<bool> SetWithExpirationTime(string key, string value, TimeSpan expiration)
         {
-            var result = _connectionMultiplexer.GetDatabase().StringSet(key, value, expiration, When.NotExists);
+            var result = await _connectionMultiplexer.GetDatabase().StringSetAsync(key, value, expiration, When.NotExists);
             return (bool)result;
         }
 
-        public bool ScriptEvaluate(string script, string key, string value)
+        public async Task<bool> ScriptEvaluate(string script, string key, string value)
         {
-            var result = _connectionMultiplexer.GetDatabase().ScriptEvaluate(script, new RedisKey[] { key }, new RedisValue[] { value });
+            var result = await _connectionMultiplexer.GetDatabase().ScriptEvaluateAsync(script, new RedisKey[] { key }, new RedisValue[] { value });
             return (bool)result;
         }
 

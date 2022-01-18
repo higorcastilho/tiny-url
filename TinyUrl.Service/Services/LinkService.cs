@@ -24,28 +24,26 @@ namespace TinyUrl.Service.Services
             _cacheService = cacheService;
         }
 
-        public string GetShortenedUrlRedirect(string shortUrl)
+        public async Task<string> GetShortenedUrlRedirect(string shortUrl)
         {
-            var longUrl = _cacheRepository.Get(shortUrl);
+            var longUrl = await _cacheRepository.Get(shortUrl);
             return longUrl;
         }
 
-        public string Generate(string longUrl, string host)
+        public async Task<string> Generate(string longUrl, string host)
         {
 
             var containerId = Dns.GetHostName();
 
-
-            var containerRangeCounter = _cacheRepository.Get(containerId);
-            
+            var containerRangeCounter = await _cacheRepository.Get(containerId);
             var containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
             var containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
 
             var range = _configuration.GetValue<long>("Range");
             if (long.Parse(containerRageCurrent) == long.Parse(containerRangeMax))
             {
-                _cacheService.GetRange();
-                containerRangeCounter = _cacheRepository.Get(containerId);
+                await _cacheService.GetRange();
+                containerRangeCounter = await _cacheRepository.Get(containerId);
                 containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
                 containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
             }
@@ -57,8 +55,8 @@ namespace TinyUrl.Service.Services
                 ShortUrl = shortUrl
             };
 
-            _cacheRepository.Set(containerId, $"{long.Parse(containerRageCurrent) + 1}-{containerRangeMax}");
-            _cacheRepository.Set(shortUrl, longUrl);
+            await _cacheRepository.Set(containerId, $"{long.Parse(containerRageCurrent) + 1}-{containerRangeMax}");
+            await _cacheRepository.Set(shortUrl, longUrl);
 
             //montar link com o meu host
             var generatedLink = $"{host}/{shortUrl}";
