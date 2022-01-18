@@ -23,6 +23,13 @@ namespace TinyUrl.Service.Services
             _cacheRepository = cacheRepository;
             _cacheService = cacheService;
         }
+
+        public string GetLongUrlRedirect(string shortUrl)
+        {
+            var longUrl = _cacheRepository.Get(shortUrl);
+            return longUrl;
+        }
+
         public async Task<Link> Generate(string longUrl)
         {
             var containerId = Dns.GetHostName();
@@ -44,6 +51,11 @@ namespace TinyUrl.Service.Services
             };
 
             _cacheRepository.Set(containerId, $"{int.Parse(counter) + 1}");
+
+            _cacheRepository.Set(shortUrl, longUrl);
+
+            //montar link com o meu host
+
             return link;
         }
     }

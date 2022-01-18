@@ -11,7 +11,7 @@ using TinyUrl.Service.Interface;
 
 namespace TinyUrl.Api.Controllers
 {
-    [Route("[controller]")]
+    //[Route("[controller]")]
     [ApiController]
     public class LinkController : Controller
     {
@@ -20,7 +20,14 @@ namespace TinyUrl.Api.Controllers
         {
             _service = service;
         }
-
+        [Route("")]
+        [HttpGet("{shortUrl}")]
+        public ActionResult GetLongUrlRedirect(string shortUrl)
+        {
+            var longUrl = _service.GetLongUrlRedirect(shortUrl);
+            return Redirect(longUrl);
+        }
+        [Route("Link")]
         [HttpPost]
         public async Task<ActionResult> Generate([FromBody] LongUrl longUrl)
         {
