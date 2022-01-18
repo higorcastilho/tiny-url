@@ -81,9 +81,12 @@ namespace TinyUrl.Service.Services
 
             if (isLocked)
             {
-                var counter = _repository.Get(containerId);
+                var containerRangeCounter = _repository.Get(containerId);
 
-                if (counter == null || (int.Parse(counter) % range) == 0)
+                var containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
+                var containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
+
+                if (containerRangeCounter == null || (containerRageCurrent == containerRangeMax))
                 {
                     var rangeStart = _repository.Get("rangeStart");
 
@@ -94,8 +97,8 @@ namespace TinyUrl.Service.Services
 
                     rangeStart = _repository.Get("rangeStart");
 
-                    counter = rangeStart.ToString();
-                    _repository.Set(containerId, counter);
+                    containerRangeCounter = $"{long.Parse(rangeStart)}-{long.Parse(rangeStart) + range}";
+                    _repository.Set(containerId, containerRangeCounter);
 
                     _repository.Set("rangeStart", $"{int.Parse(rangeStart) + range}");
 

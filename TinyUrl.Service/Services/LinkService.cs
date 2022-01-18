@@ -32,24 +32,32 @@ namespace TinyUrl.Service.Services
 
         public string Generate(string longUrl, string host)
         {
+
             var containerId = Dns.GetHostName();
-            var counter = _cacheRepository.Get(containerId);
+
+
+            var containerRangeCounter = _cacheRepository.Get(containerId);
+            
+            var containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
+            var containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
 
             var range = _configuration.GetValue<long>("Range");
-            if (int.Parse(counter) > 0 && (int.Parse(counter) % range) == 0)
+            if (long.Parse(containerRageCurrent) == long.Parse(containerRangeMax))
             {
                 _cacheService.GetRange();
-                counter = _cacheRepository.Get(containerId);
+                containerRangeCounter = _cacheRepository.Get(containerId);
+                containerRageCurrent = containerRangeCounter?.ToString()?.Split("-")[0];
+                containerRangeMax = containerRangeCounter?.ToString()?.Split("-")[1];
             }
 
-            var shortUrl = Base10ToBase62.Convert(int.Parse(counter));
+            var shortUrl = Base10ToBase62.Convert(long.Parse(containerRageCurrent));
             var link = new Link
             {
                 LongUrl = longUrl,
                 ShortUrl = shortUrl
             };
 
-            _cacheRepository.Set(containerId, $"{int.Parse(counter) + 1}");
+            _cacheRepository.Set(containerId, $"{long.Parse(containerRageCurrent) + 1}-{containerRangeMax}");
             _cacheRepository.Set(shortUrl, longUrl);
 
             //montar link com o meu host
