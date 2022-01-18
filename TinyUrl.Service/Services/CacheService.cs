@@ -5,16 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using TinyUrl.Data.Interface;
 using TinyUrl.Service.Interface;
 
 namespace TinyUrl.Service.Services
 {
     public class CacheService : ICacheService
     {
-        private static IConnectionMultiplexer _connectionMultiplexer;
-        public CacheService(IConnectionMultiplexer connectionMultiplexer)
+        private static ICacheRepository _repository;
+        public CacheService(ICacheRepository repository)
         {
-            _connectionMultiplexer = connectionMultiplexer;
+            _repository = repository;
         }
 
         static bool AcquiredLock(string key, string value, TimeSpan expiration)
@@ -22,7 +23,7 @@ namespace TinyUrl.Service.Services
             bool flag = false;
             try
             {
-                flag = _connectionMultiplexer.GetDatabase().StringSet(key, value, expiration, When.NotExists);
+                flag = _repository.SetWithExpirationTime(key, value, expiration);
             }
             catch (Exception ex)
             {
@@ -45,8 +46,8 @@ namespace TinyUrl.Service.Services
             ";
             try
             {
-                var res = _connectionMultiplexer.GetDatabase().ScriptEvaluate(lua_script, new RedisKey[] { key }, new RedisValue[] { value });
-                return (bool)res;
+                var res = _repository.ScriptEvaluate(lua_script, key , value);
+                return res;
             }
             catch (Exception ex)
             {
@@ -77,25 +78,25 @@ namespace TinyUrl.Service.Services
 
             if (isLocked)
             {
-                var counter = _connectionMultiplexer.GetDatabase().StringGet(containerId);
+                var counter = _repository.Get(containerId);
 
-                if (counter.IsNull)
+                if (counter == null)
                 {
-                    var rangeStart = _connectionMultiplexer.GetDatabase().StringGet("rangeStart");
+                    var rangeStart = _repository.Get("rangeStart");
 
-                    if (rangeStart.IsNull)
+                    if (rangeStart == null)
                     {
-                        _connectionMultiplexer.GetDatabase().StringSet("rangeStart", "0");
+                        _repository.Set("rangeStart", "0");
                     }
 
-                    rangeStart = _connectionMultiplexer.GetDatabase().StringGet("rangeStart");
+                    rangeStart = _repository.Get("rangeStart");
 
                     counter = rangeStart.ToString();
-                    _connectionMultiplexer.GetDatabase().StringSet(containerId, counter);
+                    _repository.Set(containerId, counter);
 
-                    _connectionMultiplexer.GetDatabase().StringSet("rangeStart", $"{int.Parse(rangeStart) + 10}");
+                    _repository.Set("rangeStart", $"{int.Parse(rangeStart) + 10}");
 
-                    Console.WriteLine($"{containerId} - {_connectionMultiplexer.GetDatabase().StringGet(containerId)}");
+                    Console.WriteLine($"{containerId} - {_repository.Get(containerId)}");
 
                     ReleaseLock(lockKey, containerId);
                 }

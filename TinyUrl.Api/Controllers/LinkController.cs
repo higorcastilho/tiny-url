@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using TinyUrl.Api.Models;
+using TinyUrl.Service.Interface;
 
 namespace TinyUrl.Api.Controllers
 {
@@ -14,18 +15,24 @@ namespace TinyUrl.Api.Controllers
     [ApiController]
     public class LinkController : Controller
     {
+        private readonly ILinkService _service;
+        public LinkController(ILinkService service)
+        {
+            _service = service;
+        }
+
         [HttpPost]
         public async Task<ActionResult> Generate([FromBody] LongUrl longUrl)
         {
             try
             {
-                //await _service.Create(longUrl.Url);
+                var link = await _service.Generate(longUrl.Url);
                 
                 var name = Dns.GetHostName(); // get container id
                 var ip = Dns.GetHostEntry(name).AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
                 Console.WriteLine($"Host Name: { Environment.MachineName} \t {name}\t {ip}");
                 
-                return Ok();
+                return Ok(link);
             }
             catch (Exception e)
             {

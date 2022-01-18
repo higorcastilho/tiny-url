@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TinyUrl.Data\TinyUrl.Data.csproj" />
+    <ProjectReference Include="..\TinyUrl.Domain\TinyUrl.Domain.csproj" />
+    <ProjectReference Include="..\TinyUrl.Framework\TinyUrl.Framework.csproj" />
   </ItemGroup>
 
 </Project>
