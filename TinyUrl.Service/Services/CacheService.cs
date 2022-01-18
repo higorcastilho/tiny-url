@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,11 @@ namespace TinyUrl.Service.Services
 {
     public class CacheService : ICacheService
     {
+        private readonly IConfiguration _configuration;
         private static ICacheRepository _repository;
-        public CacheService(ICacheRepository repository)
+        public CacheService(IConfiguration configuration, ICacheRepository repository)
         {
+            _configuration = configuration;
             _repository = repository;
         }
 
@@ -58,7 +61,7 @@ namespace TinyUrl.Service.Services
 
         public void GetRange()
         {
-            var range = 10;
+            var range = _configuration.GetValue<long>("Range");
             var containerId = Dns.GetHostName();
 
             string lockKey = "lock:range";
@@ -80,7 +83,7 @@ namespace TinyUrl.Service.Services
             {
                 var counter = _repository.Get(containerId);
 
-                if (counter == null)
+                if (counter == null || (int.Parse(counter) % range) == 0)
                 {
                     var rangeStart = _repository.Get("rangeStart");
 
@@ -94,7 +97,7 @@ namespace TinyUrl.Service.Services
                     counter = rangeStart.ToString();
                     _repository.Set(containerId, counter);
 
-                    _repository.Set("rangeStart", $"{int.Parse(rangeStart) + 10}");
+                    _repository.Set("rangeStart", $"{int.Parse(rangeStart) + range}");
 
                     Console.WriteLine($"{containerId} - {_repository.Get(containerId)}");
 
