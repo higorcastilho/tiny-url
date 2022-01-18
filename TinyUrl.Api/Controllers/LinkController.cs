@@ -11,7 +11,6 @@ using TinyUrl.Service.Interface;
 
 namespace TinyUrl.Api.Controllers
 {
-    //[Route("[controller]")]
     [ApiController]
     public class LinkController : Controller
     {
@@ -24,22 +23,31 @@ namespace TinyUrl.Api.Controllers
         [HttpGet("{shortUrl}")]
         public ActionResult GetLongUrlRedirect(string shortUrl)
         {
-            var longUrl = _service.GetLongUrlRedirect(shortUrl);
-            return Redirect(longUrl);
+            try
+            {
+                var longUrl = _service.GetShortenedUrlRedirect(shortUrl);
+                return Redirect(longUrl);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Error: {e.Message} - {e.InnerException?.Message}");
+            }
         }
         [Route("Link")]
         [HttpPost]
-        public async Task<ActionResult> Generate([FromBody] LongUrl longUrl)
+        public ActionResult<string> Generate([FromBody] LongUrl longUrl)
         {
             try
             {
-                var link = await _service.Generate(longUrl.Url);
+                var host = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
+                var generatedLink = _service.Generate(longUrl.Url, host);
                 
                 var name = Dns.GetHostName(); // get container id
                 var ip = Dns.GetHostEntry(name).AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
                 Console.WriteLine($"Host Name: { Environment.MachineName} \t {name}\t {ip}");
                 
-                return Ok(link);
+                return Ok(generatedLink);
             }
             catch (Exception e)
             {
