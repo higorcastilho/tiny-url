@@ -8,7 +8,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TinyUrl.Data.Context;
 using TinyUrl.Data.Repository;
 
 namespace TinyUrl.Service.Services

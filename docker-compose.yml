@@ -1,8 +1,29 @@
 version: '3.4'
 
 services:
+  redis:
+    image: redis
+    hostname: redis
+    ports: 
+      - "6379:6379"
+
   tinyurl:
     image: ${DOCKER_REGISTRY-}tinyurlapi
     build:
       context: .
       dockerfile: TinyUrl.Api/Dockerfile
+    depends_on:
+      - redis
+
+  nginx:
+    image: nginx:alpine
+    hostname: 'nginx'
+    volumes:
+      - ./TinyUrl.Api/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./TinyUrl.Api/nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+      - ./TinyUrl.Api/nginx/logs/:/var/log/nginx/
+    ports:
+      - '80:80'
+    depends_on:
+      - tinyurl
+    restart: always

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TinyUrl.Data.Repository
 {
-    public class DistributedCacheRepository
+    public class CacheRepository
     {
         
     }

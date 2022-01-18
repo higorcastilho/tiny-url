@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Context\" />
     <Folder Include="Interface\" />
   </ItemGroup>
 
