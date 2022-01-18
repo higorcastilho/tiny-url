@@ -7,10 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TinyUrl.Service.Services;
 
 namespace TinyUrl.Api
 {
@@ -28,6 +30,10 @@ namespace TinyUrl.Api
         {
 
             services.AddControllers();
+            services.AddSingleton<IConnectionMultiplexer>(x =>
+                ConnectionMultiplexer.Connect(Configuration.GetValue<string>("RedisConnection"))
+            );
+            services.AddHostedService<GetRangeHostedService>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TinyUrl.Api", Version = "v1" });
