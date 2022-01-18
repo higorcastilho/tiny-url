@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TinyUrl.Data.Interface;
 using TinyUrl.Domain.Entity;
 using TinyUrl.Framework.Converters;
+using TinyUrl.Framework.Exceptions;
 using TinyUrl.Service.Interface;
 
 namespace TinyUrl.Service.Services
@@ -17,16 +18,27 @@ namespace TinyUrl.Service.Services
         private readonly IConfiguration _configuration;
         private readonly ICacheRepository _cacheRepository;
         private readonly ICacheService _cacheService;
-        public LinkService(IConfiguration configuration, ICacheRepository cacheRepository, ICacheService cacheService)
+        private readonly ILinkRepository _repository;
+        public LinkService(IConfiguration configuration, ICacheRepository cacheRepository, ICacheService cacheService, ILinkRepository repository)
         {
             _configuration = configuration;
             _cacheRepository = cacheRepository;
             _cacheService = cacheService;
+            _repository = repository;
         }
 
         public async Task<string> GetShortenedUrlRedirect(string shortUrl)
         {
             var longUrl = await _cacheRepository.Get(shortUrl);
+
+            if (longUrl == null)
+            {
+                var result = await _repository.GetByShortUrl(shortUrl);
+                if (result == null)
+                    throw new NotFoundException("Address not found :(");
+                return result.LongUrl;
+            }
+
             return longUrl;
         }
 
@@ -58,7 +70,8 @@ namespace TinyUrl.Service.Services
             await _cacheRepository.Set(containerId, $"{long.Parse(containerRageCurrent) + 1}-{containerRangeMax}");
             await _cacheRepository.Set(shortUrl, longUrl);
 
-            //montar link com o meu host
+            _repository.Create(link);
+
             var generatedLink = $"{host}/{shortUrl}";
 
             return generatedLink;

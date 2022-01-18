@@ -1,6 +1,14 @@
 version: '3.4'
 
 services:
+  tinyurldb:
+    container_name: tinyurldb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
   tinyurl:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

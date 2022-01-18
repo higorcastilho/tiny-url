@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TinyUrl.Data.Context;
 using TinyUrl.Data.Interface;
 using TinyUrl.Data.Repository;
 using TinyUrl.Service.Interface;
@@ -16,9 +17,11 @@ namespace TinyUrl.Api.Extensions
         {
             services.AddHostedService<GetRangeHostedService>();
 
+            services.AddScoped<ITinyUrlContext, TinyUrlContext>();
             services.AddScoped<ICacheRepository, CacheRepository>();
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<ILinkService, LinkService>();
+            services.AddScoped<ILinkRepository, LinkRepository>();
         }
     }
 }

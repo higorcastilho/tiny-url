@@ -1,6 +1,9 @@
 version: '3.4'
 
 services:
+  tinyurldb:
+    image: mongo
+
   redis:
     image: redis
     hostname: redis
@@ -14,6 +17,7 @@ services:
       dockerfile: TinyUrl.Api/Dockerfile
     depends_on:
       - redis
+      - tinyurldb
 
   nginx:
     image: nginx:alpine
@@ -27,3 +31,6 @@ services:
     depends_on:
       - tinyurl
     restart: always
+
+volumes:
+  mongo_data:
